@@ -1,0 +1,15 @@
+import { PDFDocument } from 'pdf-lib';
+import { expandRecipe, exportPdf, saveRecipe, loadRecipe } from './recipe.js';
+const ja = document.documentElement.lang === 'ja';
+const sources = {}; const listing = document.querySelector('#sources'); const recipe = document.querySelector('#recipe'); const output = document.querySelector('#output'); const status = document.querySelector('#error');
+function aliasAt(index) { let n = index + 1, s = ''; while (n) { n--; s = String.fromCharCode(65 + n % 26) + s; n = Math.floor(n / 26); } return s; }
+function download(bytes, name, type) { const url = URL.createObjectURL(new Blob([bytes], { type })); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+function preview() { status.textContent = ''; output.replaceChildren(); try { const sequence = expandRecipe(recipe.value, sources); const heading = document.createElement('p'); heading.textContent = ja ? `出力：${sequence.length}ページ` : `${sequence.length} output pages`; output.append(heading); const ol = document.createElement('ol'); const seen = new Set(); for (const item of sequence) { const key = `${item.alias}:${item.page}`; const li = document.createElement('li'); li.textContent = `${key}${seen.has(key) ? (ja ? '（重複）' : ' (repeated)') : ''}`; seen.add(key); ol.append(li); } output.append(ol); return sequence; } catch (e) { status.textContent = e.message; return null; } }
+document.querySelector('#files').onchange = async e => {
+ status.textContent = ''; listing.replaceChildren(); Object.keys(sources).forEach(key => delete sources[key]);
+ try { for (const [index, file] of [...e.target.files].entries()) { const bytes = new Uint8Array(await file.arrayBuffer()); const pdf = await PDFDocument.load(bytes); const alias = aliasAt(index); sources[alias] = { name: file.name, pages: pdf.getPageCount(), bytes }; const li = document.createElement('li'); li.textContent = `${alias} — ${file.name} — ${pdf.getPageCount()} ${ja ? 'ページ' : 'pages'}`; listing.append(li); } preview(); } catch (err) { Object.keys(sources).forEach(key => delete sources[key]); listing.replaceChildren(); status.textContent = err.message; }
+};
+document.querySelector('#preview').onclick = preview;
+document.querySelector('#export').onclick = async e => { if (!preview()) return; const button = e.target; button.disabled = true; try { download(await exportPdf(recipe.value, sources), 'page-recipe-output.pdf', 'application/pdf'); status.textContent = ja ? '新しいPDFを保存しました。元ファイルは変更していません。' : 'Saved a new PDF. Source files were not changed.'; } catch (err) { status.textContent = err.message; } finally { button.disabled = false; } };
+document.querySelector('#save-recipe').onclick = () => { try { download(JSON.stringify(saveRecipe(recipe.value, sources), null, 2), 'page-recipe.json', 'application/json'); } catch (e) { status.textContent = e.message; } };
+document.querySelector('#load-recipe').onchange = async e => { try { recipe.value = loadRecipe(JSON.parse(await e.target.files[0].text()), sources); preview(); } catch (err) { status.textContent = err.message; } };

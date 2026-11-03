@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "recipe": "A:1-3,B:2,A:5",
+  "sources": [
+    {
+      "alias": "A",
+      "name": "paper.pdf",
+      "pages": 5
+    },
+    {
+      "alias": "B",
+      "name": "supplement.pdf",
+      "pages": 2
+    }
+  ]
+}
