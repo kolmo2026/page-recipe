@@ -37,6 +37,8 @@ Range grammar, reverse/repeat, JSON roundtrip, invalid inputs, and real multi-pa
 
 Source: `src/`, `test/`, `site/` and `scripts/`. The independent static site is built to `docs/`, with English/Japanese equivalents, canonical/hreflang links, sitemap, robots, CNAME and .nojekyll. Its hostname is https://pdf.optmodel.com. Each repository is self-contained; no sibling directory is needed to build.
 
+GitHub hosts the public source code; the live educational website is deployed on Vercel. Legacy GitHub Pages settings and compatibility files are retained, not the current production hosting choice.
+
 ## Limits
 
 Ordinary unencrypted PDFs only. Do not rely on preservation of signatures, bookmarks, attachments, forms, page labels or document metadata. Not OCR, redaction, repair or PDF compliance validation. One-based physical page positions, not printed labels. Recipe ceiling: 10,000 output pages; practical memory limits may be lower. JSON matches names/page counts, not file identity. Download a new filename; do not manually overwrite originals. Some error messages are English.
